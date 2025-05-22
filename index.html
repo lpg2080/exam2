@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>모의고사 시간표</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px 40px;
+      font-family: 'Nanum Gothic', sans-serif;
+      background-color: #111;
+      color: white;
+      font-size: 7px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .container {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+    .column {
+      display: table-cell;
+      vertical-align: top;
+    }
+    .left {
+      width: 65%;
+    }
+    .right {
+      width: 35%;
+    }
+    .clock {
+      margin-top: 0;
+      margin-bottom: 21px;
+      font-size: 54px;
+      color: yellow;
+      font-weight: 700;
+      text-align: center;
+    }
+    .school-code {
+      background-color: white;
+      color: black;
+      font-size: 34px;
+      font-weight: bold;
+      text-align: center;
+      padding: 8px 0;
+      margin-bottom: 21px;
+      line-height: normal;
+    }
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 21px;
+      table-layout: fixed;
+    }
+    .schedule-table colgroup col:nth-child(1) { width: 15%; }
+    .schedule-table colgroup col:nth-child(2) { width: 47%; }
+    .schedule-table colgroup col:nth-child(3) { width: 38%; }
+    .schedule-table th,
+    .schedule-table td {
+      border: none;
+      padding: 5px;
+      font-size: 25px;
+      line-height: 1.45;
+    }
+    .schedule-table th {
+      font-weight: 700;
+      text-align: left;
+    }
+    .schedule-table td {
+      text-align: left;
+    }
+    .row {
+      margin-bottom: 21px;
+      white-space: nowrap;
+    }
+    .row .label {
+      font-weight: 700;
+      display: inline-block;
+      width: 100px;
+      font-size: 28px;
+      line-height: 1;
+    }
+    .row input {
+      height: 34px;
+      font-size: 30px;
+      font-weight: 700;
+      border: 2px solid white;
+      background-color: #222;
+      color: yellow;
+      text-align: center;
+      margin-left: 5px;
+    }
+    .row .long {
+      width: 180px;
+    }
+    .row .short {
+      width: 80px;
+    }
+    .action-buttons {
+      margin-top: 30px;
+      text-align: left;
+      margin-left: 5px;
+    }
+    .action-buttons button {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 10px;
+      padding: 5px 10px;
+      background-color: #222;
+      color: white;
+      border: 2px solid white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .action-buttons button:hover {
+      background-color: yellow;
+      color: #111;
+    }
+
+    #toggle-period {
+      margin-left: 105px;
+    }
+
+    #toggle-period:focus,
+    #toggle-period:active {
+      background-color: initial;
+      color: white;
+      outline: none;
+    }
+
+    .schedule-table th:nth-child(2) {
+      padding-left: 60px;
+    }
+
+    .schedule-table th:nth-child(3) {
+      padding-left: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="column left">
+      <table class="schedule-table" id="schedule-table">
+        <colgroup>
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>&lt;교시&gt;</th>
+            <th>&lt;시간&gt;</th>
+            <th>&lt;과목&gt;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1교시</td><td>08:10(20) ~ 09:40</td><td>국어(80분)</td></tr>
+          <tr><td>2교시</td><td>09:50(10:00) ~ 11:40</td><td>수학(100분)</td></tr>
+          <tr><td>3교시</td><td>12:40(50) ~ 14:00</td><td>영어(70분)</td></tr>
+          <tr><td>4교시</td><td>14:10(20) ~ 16:17</td><td>한국사/통사/통과(117분)</td></tr>
+          <tr><td></td><td style="padding-left:15px;">- 14:20 ~ 14:50</td><td style="padding-left:15px;">- 한국사(30분)</td></tr>
+          <tr><td></td><td style="padding-left:15px;">- 14:55 ~ 15:35</td><td style="padding-left:15px;">- 통합사회(40분)</td></tr>
+          <tr><td></td><td style="padding-left:15px;">- 15:37 ~ 16:17</td><td style="padding-left:15px;">- 통합과학(40분)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="column right">
+      <div class="clock" id="clock">Loading...</div>
+      <div class="school-code">학교코드 : 11505</div>
+      <div class="row">
+        <span class="label">• 재적</span><input type="text" class="short" />
+      </div>
+      <div class="row">
+        <span class="label">• 응시</span><input type="text" class="short" />
+      </div>
+      <div class="row">
+        <span class="label">• 결시</span><input type="text" class="long" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var serverBaseTime, clientStartTime;
+
+    function fetchServerTime() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://us-central1-exam-clock-server.cloudfunctions.net/getTime', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          try {
+            var response = JSON.parse(xhr.responseText);
+            var parts = response.time.split(":");
+            var now = new Date();
+            now.setHours(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+            serverBaseTime = now.getTime();
+            clientStartTime = Date.now();
+            updateClock();
+            setInterval(updateClock, 1000);
+          } catch (e) {
+            console.error("JSON 파싱 실패:", e);
+            document.getElementById("clock").textContent = "-- : -- : --";
+          }
+        }
+      };
+      xhr.onerror = function() {
+        console.error("요청 실패");
+        document.getElementById("clock").textContent = "-- : -- : --";
+      };
+      xhr.send();
+    }
+
+    function updateClock() {
+      if (!serverBaseTime || !clientStartTime) return;
+      var now = new Date(serverBaseTime + (Date.now() - clientStartTime));
+      var h = ("0" + now.getHours()).slice(-2),
+          m = ("0" + now.getMinutes()).slice(-2),
+          s = ("0" + now.getSeconds()).slice(-2);
+      document.getElementById("clock").textContent = h + " : " + m + " : " + s;
+    }
+
+    fetchServerTime();
+  </script>
+</body>
+</html>
