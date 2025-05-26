@@ -113,21 +113,26 @@
       border: 2px solid white;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
-    .action-buttons button:hover {
-      background-color: yellow;
-      color: #111;
+
+    /* 🔸 터치 반응 클래스 */
+    .action-buttons button.touch-feedback {
+      background-color: yellow !important;
+      color: #111 !important;
+    }
+
+    /* 🔸 클릭/터치 후 스타일 유지 방지 */
+    .action-buttons button:focus,
+    .action-buttons button:active {
+      background-color: #222 !important;
+      color: white !important;
+      outline: none;
+      box-shadow: none;
     }
 
     #toggle-period {
       margin-left: 105px;
-    }
-
-    #toggle-period:focus,
-    #toggle-period:active {
-      background-color: initial;
-      color: white;
-      outline: none;
     }
 
     .schedule-table th:nth-child(2) {
@@ -178,6 +183,10 @@
       <div class="row">
         <span class="label">• 결시</span><input type="text" class="long" />
       </div>
+      <div class="action-buttons">
+        <button>5교시 추가</button>
+        <button>5교시 삭제</button>
+      </div>
     </div>
   </div>
 
@@ -221,6 +230,19 @@
     }
 
     fetchServerTime();
+
+    // ✅ 버튼 터치 반응 효과
+    document.querySelectorAll('.action-buttons button').forEach(button => {
+      function triggerFeedback() {
+        button.classList.add('touch-feedback');
+        setTimeout(() => {
+          button.classList.remove('touch-feedback');
+        }, 150);
+      }
+
+      button.addEventListener('touchstart', triggerFeedback);
+      button.addEventListener('mousedown', triggerFeedback);
+    });
   </script>
 </body>
 </html>
